@@ -3,7 +3,6 @@ CREATE TABLE courses (
     course_id INT PRIMARY KEY,
     course_name VARCHAR(100)
 );
-
 CREATE TABLE enrollments (
     user_id INT,
     course_id INT,
