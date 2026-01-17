@@ -5,7 +5,6 @@ CREATE TABLE employees (
     department VARCHAR(50),
     salary INT
 );
-
 CREATE TABLE performance (
     perf_id INT PRIMARY KEY,
     emp_id INT,
