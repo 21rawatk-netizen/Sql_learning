@@ -3,7 +3,6 @@ CREATE TABLE patients (
     patient_id INT PRIMARY KEY,
     patient_name VARCHAR(100)
 );
-
 CREATE TABLE appointments (
     appointment_id INT PRIMARY KEY,
     patient_id INT,
@@ -13,7 +12,6 @@ CREATE TABLE appointments (
 INSERT INTO patients VALUES
 (1,'Raj'),
 (2,'Meena');
-
 INSERT INTO appointments VALUES
 (101,1,'Dr. Sharma','2024-01-10'),
 (102,2,'Dr. Sharma','2024-01-12'),
