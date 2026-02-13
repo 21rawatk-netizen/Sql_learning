@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz App</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.quiz-container {
+    background: white;
+    width: 400px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+    margin-bottom: 15px;
+}
+
+.option {
+    display: block;
+    margin: 10px 0;
+    padding: 8px;
+    background: #f4f4f4;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.option:hover {
+    background: #dbeafe;
+}
+
+button {
+    margin-top: 15px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background: #4e73df;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.result {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-container">
+    <h2 id="question">Question</h2>
+    <div id="options"></div>
+    <button onclick="nextQuestion()">Next</button>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+const quizData = [
+    {
+        question: "Which language is used for web structure?",
+        options: ["CSS", "HTML", "Python", "C++"],
+        correct: "HTML"
+    },
+    {
+        question: "Which is used for styling?",
+        options: ["Java", "CSS", "NodeJS", "SQL"],
+        correct: "CSS"
+    },
+    {
+        question: "Which is used for interactivity?",
+        options: ["HTML", "CSS", "JavaScript", "Photoshop"],
+        correct: "JavaScript"
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selectedOption = null;
+
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const resultEl = document.getElementById("result");
+
+function loadQuestion() {
+    selectedOption = null;
+    const data = quizData[currentQuestion];
+    questionEl.textContent = data.question;
+    optionsEl.innerHTML = "";
+
+    data.options.forEach(option => {
+        const div = document.createElement("div");
+        div.textContent = option;
+        div.classList.add("option");
+
+        div.onclick = function() {
+            document.querySelectorAll(".option").forEach(opt => 
+                opt.style.background = "#f4f4f4"
+            );
+            div.style.background = "#a5f3fc";
+            selectedOption = option;
+        };
+
+        optionsEl.appendChild(div);
+    });
+}
+
+function nextQuestion() {
+    if(selectedOption === null) {
+        alert("Please select an option!");
+        return;
+    }
+
+    if(selectedOption === quizData[currentQuestion].correct) {
+        score++;
+    }
+
+    currentQuestion++;
+
+    if(currentQuestion < quizData.length) {
+        loadQuestion();
+    } else {
+        questionEl.textContent = "Quiz Completed!";
+        optionsEl.innerHTML = "";
+        resultEl.textContent = "Your Score: " + score + " / " + quizData.length;
+    }
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
