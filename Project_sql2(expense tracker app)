@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: white;
+    width: 400px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.balance {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.balance h3 {
+    font-size: 18px;
+}
+
+.balance p {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.summary div {
+    width: 48%;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+}
+
+.income {
+    background: #38a169;
+}
+
+.expense {
+    background: #e53e3e;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #11998e;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+ul {
+    list-style: none;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    background: #f4f4f4;
+}
+
+li.income-item {
+    border-left: 5px solid #38a169;
+}
+
+li.expense-item {
+    border-left: 5px solid #e53e3e;
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: red;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Expense Tracker</h2>
+
+    <div class="balance">
+        <h3>Total Balance</h3>
+        <p id="balance">₹0</p>
+    </div>
+
+    <div class="summary">
+        <div class="income">
+            <h4>Income</h4>
+            <p id="income">₹0</p>
+        </div>
+        <div class="expense">
+            <h4>Expense</h4>
+            <p id="expense">₹0</p>
+        </div>
+    </div>
+
+    <form id="form">
+        <input type="text" id="text" placeholder="Description" required>
+        <input type="number" id="amount" placeholder="Amount (+income, -expense)" required>
+        <button type="submit">Add Transaction</button>
+    </form>
+
+    <ul id="list"></ul>
+</div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+
+const balance = document.getElementById("balance");
+const income = document.getElementById("income");
+const expense = document.getElementById("expense");
+const list = document.getElementById("list");
+const form = document.getElementById("form");
+
+function updateValues() {
+    const amounts = transactions.map(t => t.amount);
+
+    const total = amounts.reduce((acc, item) => acc + item, 0).toFixed(2);
+    const incomeTotal = amounts
+        .filter(item => item > 0)
+        .reduce((acc, item) => acc + item, 0)
+        .toFixed(2);
+
+    const expenseTotal = amounts
+        .filter(item => item < 0)
+        .reduce((acc, item) => acc + item, 0)
+        .toFixed(2);
+
+    balance.textContent = `₹${total}`;
+    income.textContent = `₹${incomeTotal}`;
+    expense.textContent = `₹${Math.abs(expenseTotal)}`;
+}
+
+function renderTransactions() {
+    list.innerHTML = "";
+    transactions.forEach((t, index) => {
+        const li = document.createElement("li");
+        li.classList.add(t.amount > 0 ? "income-item" : "expense-item");
+
+        li.innerHTML = `
+            ${t.text} <span>₹${t.amount}</span>
+            <button class="delete-btn" onclick="deleteTransaction(${index})">x</button>
+        `;
+
+        list.appendChild(li);
+    });
+
+    updateValues();
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+}
+
+function deleteTransaction(index) {
+    transactions.splice(index, 1);
+    renderTransactions();
+}
+
+form.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const text = document.getElementById("text").value;
+    const amount = +document.getElementById("amount").value;
+
+    transactions.push({ text, amount });
+
+    form.reset();
+    renderTransactions();
+});
+
+renderTransactions();
+</script>
+
+</body>
+</html>
