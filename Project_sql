@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Todo App</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: white;
+    width: 350px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-section {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #5a67d8;
+}
+
+ul {
+    list-style: none;
+    margin-top: 20px;
+}
+
+li {
+    background: #f4f4f4;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+li.completed span {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.task-buttons button {
+    margin-left: 5px;
+    background: #e53e3e;
+}
+
+.task-buttons button.edit {
+    background: #38a169;
+}
+
+.task-buttons button:hover {
+    opacity: 0.8;
+}
+
+@media(max-width: 400px){
+    .container {
+        width: 90%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>My Todo List</h2>
+
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Enter task">
+        <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+const taskList = document.getElementById("taskList");
+
+function renderTasks() {
+    taskList.innerHTML = "";
+    tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.className = task.completed ? "completed" : "";
+
+        li.innerHTML = `
+            <span onclick="toggleComplete(${index})">${task.text}</span>
+            <div class="task-buttons">
+                <button class="edit" onclick="editTask(${index})">Edit</button>
+                <button onclick="deleteTask(${index})">X</button>
+            </div>
+        `;
+
+        taskList.appendChild(li);
+    });
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+    const input = document.getElementById("taskInput");
+    if(input.value.trim() === "") return;
+
+    tasks.push({ text: input.value, completed: false });
+    input.value = "";
+    renderTasks();
+}
+
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    renderTasks();
+}
+
+function toggleComplete(index) {
+    tasks[index].completed = !tasks[index].completed;
+    renderTasks();
+}
+
+function editTask(index) {
+    const newText = prompt("Edit task:", tasks[index].text);
+    if(newText !== null && newText.trim() !== ""){
+        tasks[index].text = newText;
+        renderTasks();
+    }
+}
+
+renderTasks();
+</script>
+
+</body>
+</html>
