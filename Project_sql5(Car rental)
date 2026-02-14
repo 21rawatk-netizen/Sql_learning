@@ -1,0 +1,167 @@
+-- ============================================
+-- CAR RENTAL MANAGEMENT SYSTEM - FULL PROJECT
+-- ============================================
+
+DROP DATABASE IF EXISTS CarRentalSystem;
+CREATE DATABASE CarRentalSystem;
+USE CarRentalSystem;
+
+-- ============================================
+-- 1️⃣ TABLES
+-- ============================================
+
+-- Customers Table
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cars Table
+CREATE TABLE Cars (
+    car_id INT PRIMARY KEY AUTO_INCREMENT,
+    car_model VARCHAR(100) NOT NULL,
+    brand VARCHAR(50),
+    year INT,
+    price_per_day DECIMAL(10,2),
+    status VARCHAR(20) DEFAULT 'Available' -- Available / Rented
+);
+
+-- Rentals Table
+CREATE TABLE Rentals (
+    rental_id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT,
+    car_id INT,
+    rental_start DATE,
+    rental_end DATE,
+    total_amount DECIMAL(10,2),
+    rental_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY (car_id) REFERENCES Cars(car_id)
+    ON DELETE CASCADE
+);
+
+-- Payments Table
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    rental_id INT,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10,2),
+    payment_method VARCHAR(30),
+    payment_status VARCHAR(20) DEFAULT 'Pending',
+
+    FOREIGN KEY (rental_id) REFERENCES Rentals(rental_id)
+    ON DELETE CASCADE
+);
+
+-- ============================================
+-- 2️⃣ SAMPLE DATA
+-- ============================================
+
+INSERT INTO Customers (first_name, last_name, email, phone)
+VALUES
+('Rahul', 'Sharma', 'rahul@gmail.com', '9876543210'),
+('Priya', 'Verma', 'priya@gmail.com', '9123456780');
+
+INSERT INTO Cars (car_model, brand, year, price_per_day)
+VALUES
+('Swift', 'Maruti', 2022, 1500.00),
+('City', 'Honda', 2023, 2500.00),
+('Fortuner', 'Toyota', 2024, 5000.00);
+
+-- ============================================
+-- 3️⃣ TRIGGER (Auto Update Car Status After Rental)
+-- ============================================
+
+DELIMITER //
+
+CREATE TRIGGER AfterRentalInsert
+AFTER INSERT ON Rentals
+FOR EACH ROW
+BEGIN
+    UPDATE Cars
+    SET status = 'Rented'
+    WHERE car_id = NEW.car_id;
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- 4️⃣ STORED PROCEDURE (Rent Car)
+-- ============================================
+
+DELIMITER //
+
+CREATE PROCEDURE RentCar(
+    IN c_id INT,
+    IN carid INT,
+    IN start_date DATE,
+    IN end_date DATE
+)
+BEGIN
+    DECLARE days INT;
+    DECLARE price DECIMAL(10,2);
+    DECLARE total DECIMAL(10,2);
+
+    -- Calculate rental days
+    SET days = DATEDIFF(end_date, start_date);
+
+    -- Get car price per day
+    SELECT price_per_day INTO price
+    FROM Cars
+    WHERE car_id = carid;
+
+    SET total = days * price;
+
+    -- Insert rental record
+    INSERT INTO Rentals(customer_id, car_id, rental_start, rental_end, total_amount)
+    VALUES (c_id, carid, start_date, end_date, total);
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- 5️⃣ VIEW (Rental Details)
+-- ============================================
+
+CREATE VIEW RentalDetailsView AS
+SELECT 
+    r.rental_id,
+    c.first_name,
+    c.last_name,
+    car.car_model,
+    car.brand,
+    r.rental_start,
+    r.rental_end,
+    r.total_amount
+FROM Rentals r
+JOIN Customers c ON r.customer_id = c.customer_id
+JOIN Cars car ON r.car_id = car.car_id;
+
+-- ============================================
+-- 6️⃣ TESTING QUERIES
+-- ============================================
+
+-- Rent a Car
+-- CALL RentCar(1, 1, '2026-03-01', '2026-03-05');
+
+-- View Rentals
+-- SELECT * FROM Rentals;
+
+-- Check Car Status
+-- SELECT car_model, status FROM Cars;
+
+-- View Rental Details
+-- SELECT * FROM RentalDetailsView;
+
+-- Total Revenue
+-- SELECT SUM(total_amount) AS Total_Revenue FROM Rentals;
+
+-- ============================================
+-- END OF PROJECT
+-- ============================================
