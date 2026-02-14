@@ -1,0 +1,166 @@
+-- ============================================
+-- HOTEL MANAGEMENT SYSTEM - FULL PROJECT
+-- ============================================
+
+DROP DATABASE IF EXISTS HotelManagementSystem;
+CREATE DATABASE HotelManagementSystem;
+USE HotelManagementSystem;
+
+-- ============================================
+-- 1️⃣ TABLES
+-- ============================================
+
+-- Guests Table
+CREATE TABLE Guests (
+    guest_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Rooms Table
+CREATE TABLE Rooms (
+    room_id INT PRIMARY KEY AUTO_INCREMENT,
+    room_number VARCHAR(10) UNIQUE,
+    room_type VARCHAR(30),  -- Standard / Deluxe / Suite
+    price_per_night DECIMAL(10,2),
+    status VARCHAR(20) DEFAULT 'Available' -- Available / Booked
+);
+
+-- Bookings Table
+CREATE TABLE Bookings (
+    booking_id INT PRIMARY KEY AUTO_INCREMENT,
+    guest_id INT,
+    room_id INT,
+    check_in DATE,
+    check_out DATE,
+    total_amount DECIMAL(10,2),
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (guest_id) REFERENCES Guests(guest_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
+    ON DELETE CASCADE
+);
+
+-- Payments Table
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    booking_id INT,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10,2),
+    payment_method VARCHAR(30),
+    payment_status VARCHAR(20) DEFAULT 'Pending',
+
+    FOREIGN KEY (booking_id) REFERENCES Bookings(booking_id)
+    ON DELETE CASCADE
+);
+
+-- ============================================
+-- 2️⃣ SAMPLE DATA
+-- ============================================
+
+INSERT INTO Guests (first_name, last_name, email, phone)
+VALUES
+('Rahul', 'Sharma', 'rahul@gmail.com', '9876543210'),
+('Priya', 'Verma', 'priya@gmail.com', '9123456780');
+
+INSERT INTO Rooms (room_number, room_type, price_per_night)
+VALUES
+('101', 'Standard', 2000.00),
+('102', 'Deluxe', 3500.00),
+('201', 'Suite', 5000.00);
+
+-- ============================================
+-- 3️⃣ TRIGGER (Auto Update Room Status After Booking)
+-- ============================================
+
+DELIMITER //
+
+CREATE TRIGGER AfterBookingInsert
+AFTER INSERT ON Bookings
+FOR EACH ROW
+BEGIN
+    UPDATE Rooms
+    SET status = 'Booked'
+    WHERE room_id = NEW.room_id;
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- 4️⃣ STORED PROCEDURE (Book Room)
+-- ============================================
+
+DELIMITER //
+
+CREATE PROCEDURE BookRoom(
+    IN g_id INT,
+    IN r_id INT,
+    IN checkin DATE,
+    IN checkout DATE
+)
+BEGIN
+    DECLARE nights INT;
+    DECLARE price DECIMAL(10,2);
+    DECLARE total DECIMAL(10,2);
+
+    -- Calculate number of nights
+    SET nights = DATEDIFF(checkout, checkin);
+
+    -- Get room price
+    SELECT price_per_night INTO price
+    FROM Rooms
+    WHERE room_id = r_id;
+
+    SET total = nights * price;
+
+    -- Insert booking
+    INSERT INTO Bookings(guest_id, room_id, check_in, check_out, total_amount)
+    VALUES (g_id, r_id, checkin, checkout, total);
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- 5️⃣ VIEW (Booking Details)
+-- ============================================
+
+CREATE VIEW BookingDetailsView AS
+SELECT 
+    b.booking_id,
+    g.first_name,
+    g.last_name,
+    r.room_number,
+    r.room_type,
+    b.check_in,
+    b.check_out,
+    b.total_amount
+FROM Bookings b
+JOIN Guests g ON b.guest_id = g.guest_id
+JOIN Rooms r ON b.room_id = r.room_id;
+
+-- ============================================
+-- 6️⃣ TESTING QUERIES
+-- ============================================
+
+-- Book a Room
+-- CALL BookRoom(1, 1, '2026-03-01', '2026-03-05');
+
+-- View Bookings
+-- SELECT * FROM Bookings;
+
+-- Check Room Status
+-- SELECT room_number, status FROM Rooms;
+
+-- View Full Booking Details
+-- SELECT * FROM BookingDetailsView;
+
+-- Total Revenue
+-- SELECT SUM(total_amount) AS Total_Revenue FROM Bookings;
+
+-- ============================================
+-- END OF PROJECT
+-- ============================================
