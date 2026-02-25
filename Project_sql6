@@ -1,0 +1,110 @@
+-- =========================================
+-- E-Commerce Sales Analysis SQL Project
+-- =========================================
+
+-- Drop tables if already exist (for re-running safely)
+DROP TABLE IF EXISTS OrderDetails;
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Products;
+DROP TABLE IF EXISTS Customers;
+
+-- =========================================
+-- 1️⃣ Create Tables
+-- =========================================
+
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    city VARCHAR(50),
+    signup_date DATE
+);
+
+CREATE TABLE Products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2)
+);
+
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+
+CREATE TABLE OrderDetails (
+    order_detail_id INT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    price DECIMAL(10,2),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+-- =========================================
+-- 2️⃣ Insert Sample Data
+-- =========================================
+
+INSERT INTO Customers VALUES
+(1, 'Rahul Sharma', 'rahul@email.com', 'Mumbai', '2024-01-15'),
+(2, 'Priya Patel', 'priya@email.com', 'Delhi', '2024-02-20'),
+(3, 'Amit Verma', 'amit@email.com', 'Bangalore', '2024-03-10');
+
+INSERT INTO Products VALUES
+(101, 'Laptop', 'Electronics', 60000),
+(102, 'Headphones', 'Electronics', 2000),
+(103, 'Shoes', 'Fashion', 3000),
+(104, 'Mobile Phone', 'Electronics', 25000);
+
+INSERT INTO Orders VALUES
+(1001, 1, '2024-03-01', 62000),
+(1002, 2, '2024-03-05', 3000),
+(1003, 3, '2024-03-15', 25000);
+
+INSERT INTO OrderDetails VALUES
+(1, 1001, 101, 1, 60000),
+(2, 1001, 102, 1, 2000),
+(3, 1002, 103, 1, 3000),
+(4, 1003, 104, 1, 25000);
+
+-- =========================================
+-- 3️⃣ Business Analysis Queries
+-- =========================================
+
+-- 🔹 Total Revenue
+SELECT SUM(total_amount) AS Total_Revenue
+FROM Orders;
+
+-- 🔹 Top Selling Products
+SELECT p.product_name, SUM(od.quantity) AS Total_Sold
+FROM OrderDetails od
+JOIN Products p ON od.product_id = p.product_id
+GROUP BY p.product_name
+ORDER BY Total_Sold DESC;
+
+-- 🔹 Top Customers by Spending
+SELECT c.name, SUM(o.total_amount) AS Total_Spent
+FROM Customers c
+JOIN Orders o ON c.customer_id = o.customer_id
+GROUP BY c.name
+ORDER BY Total_Spent DESC;
+
+-- 🔹 Monthly Revenue Report
+SELECT 
+    YEAR(order_date) AS Year,
+    MONTH(order_date) AS Month,
+    SUM(total_amount) AS Monthly_Revenue
+FROM Orders
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY Year, Month;
+
+-- 🔹 Revenue by Category
+SELECT p.category, SUM(od.quantity * od.price) AS Category_Revenue
+FROM OrderDetails od
+JOIN Products p ON od.product_id = p.product_id
+GROUP BY p.category
+ORDER BY Category_Revenue DESC;
